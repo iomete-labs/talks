@@ -1,0 +1,9 @@
+*.png filter=lfs diff=lfs merge=lfs -text
+*.webm filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+branchless-programming-presentation/bqn.png filter=lfs diff=lfs merge=lfs -text
+branchless-programming-presentation/firing-squad.png filter=lfs diff=lfs merge=lfs -text
+branchless-programming-presentation/operators-in-q.png filter=lfs diff=lfs merge=lfs -text
+branchless-programming-presentation/rust-or-functions.png filter=lfs diff=lfs merge=lfs -text
+branchless-programming-presentation/rust-or-type.png filter=lfs diff=lfs merge=lfs -text
+branchless-programming-presentation/combinators.webm filter=lfs diff=lfs merge=lfs -text

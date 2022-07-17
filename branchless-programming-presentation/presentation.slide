@@ -1,0 +1,459 @@
+# Branchless programming
+
+## A story of three camps
+
+Branchless programming really boils down to three categories in my
+opinion...
+
+## A story of three camps
+
+1. Side effect/no choice
+	- Pretty simple
+	- Most of what you're already familiar with
+	- Still programming composition/branchless programming
+
+2. Branching with monads/currying/type systems
+    - Bit more unusual
+    - Lots of opportunities to build interesting systems
+    - Takes some understanding of this style
+    - Monads usually involve language sugar in some form
+
+3. Combinators/guards over recursion
+
+## All ultimately the same thing
+
+- Why would you do this?
+- Does it happen naturally?
+
+## No choice
+
+These things are the same!
+
+**Chaining things in an imperative language (C#?)**
+
+---
+
+	http.get_something()
+		.decode_response()
+		.print_username()
+
+Generally implies side effects... And implies exceptions or language
+sugar to support breaking out if things go wrong (what happens if we
+can't decode the user's name?)
+
+**Piping things (Unix shells?)**
+
+This shell piping would take my song list, sort it then only get
+the unique songs:
+
+---
+
+	sort $HOME/.config/music | uniq -u
+
+Literally just runs the program `sort` on my music list which produces
+output that contains the lines in the file `music` sorted, then returns
+the unique songs with `uniq`...
+
+## No choice
+
+These things are still the same...
+
+**Composition in functional programming**
+
+---
+
+	sprintf "%s user" . user_username . get_username
+
+Would very simply extract a user's username from the mysterious
+`get_username` function and format a new string of "username user" -
+pretty silly.
+
+This is the same as the above! Except it's **right to left** and
+typed! Except there's more to the story...
+
+**Vector math in APL languages**
+
+---
+
+	{0<x+0 1@4-2 sum/2(1 0 -1 rotate'\:)/x}
+
+What's going on here? This is Conway's Game of Life
+in KDB Q by a blogger. Read right to left!
+
+## Vector math in APL languages
+
+Doesn't have to be APL, but this is a good example of heavy vector
+programming... You might see this in the work that you do in physics,
+same thing ultimately.
+
+- Usually embedded in other programs
+	- Usually the crux of what you want
+	- Lots of high level features to support branchless programming
+	in these languages
+	- Highly skilled programmers enjoying insane salaries work here
+		- Ask Erik about the Irish guys we've met
+
+## Operators in APL languages...
+
+If you think this is weird wait until you see Dyalog/BQN
+
+.image operators-in-q.png
+
+## BQN for good measure
+
+Pretty interesting stuff but ultimately the same as what we've seen in
+the past.
+
+.image bqn.png
+
+## Branching with monads/currying/type systems
+
+Always implements some kind of branching behind the scenes...
+
+- But YOU, the programmer, won't be branching
+
+This is important! If you're programming anything unrelated to the
+problem at hand, you're writing a low level language...
+
+Example a - monads:
+
+---
+
+	type 'a option = Some of 'a | None
+
+	let (>>=) g f = match g with
+	  | Some v -> f v
+	  | None as n -> n
+
+	Some 123 >>= fun v ->
+	Some (v + 123) >>= fun v ->
+	Some (v * 2)
+
+What's going on here?
+
+## Branching with monads/currying/type systems
+
+- I'm building a new type system that brings the behaviour of my program
+into a state of existence or non-existence (it's either Some or None!)
+
+- This is called a "sum type" or a "variant"...
+
+- I'm using an infix function (`>>=`) which runs the next bit of code
+on the right if the input on the left is Some, if it's None, it'll just
+jump out!
+
+Important to note that here, we're constructing something called a **DSL**
+(domain-specific language) - a language contained within the language
+with constraints implemented by the type system!
+
+## Branching with monads/currying/type systems
+
+What would the previous slide be like if we were to use JS here?
+
+---
+
+	const number = (() => return 123)();
+
+	if (number === null) return;
+
+	number = (() => number + 123)();
+
+	if (number === null) return;
+
+	number = (() => number * 2)();
+
+	if (number === null) return;
+
+	return number;
+
+Pretty shit. Also nonsensical given the style.
+
+## Branching with monads/currying/type systems
+
+This DSL stuff is pretty interesting:
+
+---
+
+	type ('a, 'b) exp_container =
+	  | Contained of 'a
+	  | Exception_needed of 'b
+	  | Nothing
+
+Sum type with three states!
+
+## Branching with monads/currying/type systems
+
+Example of how this could be used - using the race as an example:
+
+---
+
+	Exception_needed `Sailor_sick
+
+(This implies jumping out and going up the stack until a handler is
+in use.)
+
+---
+
+	Contained (`Won (Unix.time ()))
+
+---
+
+	Nothing
+
+(Obviously, we could have created a better type to represent this...)
+
+## Branching with monads/currying/type systems
+
+This could be used to create something similar to the following:
+
+---
+
+	let bind v g f = match g with
+	  | Contained x -> f x
+	  | Exception_needed s -> v s
+	  | Nothing as n -> n
+
+	let contained v = Contained v
+
+	(* $$ is the same as . *)
+
+	let ($$) g f x = g (f x)
+
+	let () =
+	  let (>*=) = bind (contained $$ Printf.sprintf "%s error!") in
+	  Contained "Alex" >*= fun name_alex ->
+	  Contained "Erik" >*= fun name_erik ->
+	  Exception_needed (String.concat " " [name_alex; name_erik])
+
+This code has a function that takes the error state and handles it when
+it happens with a function that bind calls that's bound to `>*=`.
+
+## Branching with monads/currying/type systems
+
+Rust has better support with its macro system for monads that jump out
+with its Result type:
+
+.image rust-or-type.png 380 1084
+
+## Branching with monads/currying/type systems
+
+No infix but Rust encourages programming  but with macro
+programming that lets you jump out:
+
+---
+
+	do_something()
+		.unwrap_or(|v| ...)
+		.unwrap();
+
+## Branching with monads/currying/type systems
+
+.image rust-or-functions.png 480 550
+
+## Branching with monads/currying/type systems
+
+Monads can be used to schedule cooperative threading:
+
+Cohttp is a HTTP library that uses LWT (lightweight threading) to make
+requests and defer execution back up to the toplevel.
+
+We can use it to make HTTP requests for each URL passed as lines in stdin,
+and have them work cooperatively (interleaving execution between green
+threads).
+
+## Branching with monads/currying/type systems
+
+---
+
+	open Lwt.Infix
+
+	let rec read_lines_into_seq in_chan () =
+	  Lwt_io.(read_line_opt in_chan) >|= function
+	  | Some line -> Lwt_seq.Cons (line, read_lines_into_seq in_chan)
+	  | None -> Lwt_seq.Nil
+
+	let http_get_body line =
+	  Cohttp_lwt_unix.Client.get (Uri.of_string line) >>= fun (_, body) ->
+	  Cohttp_lwt.Body.to_string body
+
+	let http_get_print_body line =
+	  http_get_body line >>= Lwt_io.printl
+
+	let main in_chan =
+	  Lwt_seq.iter_p
+	    http_get_print_body
+	    (read_lines_into_seq in_chan)
+
+	let () = Lwt_main.run (main Lwt_io.stdin)
+
+Cooperative scheduling without branching using monads instead of a
+language feature!
+
+## Branching with monads/currying/type systems
+
+Finally, the ultimate form of using currying/monads/type systems...
+
+**GADTs** (generalised algebraic datatypes)
+
+- "guarded recursive types"
+
+Natural number implemented as a GADT:
+
+---
+
+	type _ number =
+	  | Zero : [`Zero] number
+	  | One : [`Zero] number -> [`One] number
+	  | Two : [`One] number -> [`Two] number
+	  | Three : [`Two] number -> [`Three] number
+	  | Four : [`Three] number -> [`Four] number
+
+The type can only be built recursively:
+
+---
+
+	Four (Three (Two (One Zero)))
+
+## Branching with monads/currying/type systems
+
+If we were to try to build the recursive type in other ways...
+
+---
+
+	Four Zero
+
+then...
+
+---
+
+	Error: This expression has type [ `Zero ] number
+	       but an expression was expected of type [ `Three ] number
+	       These two variant types have no intersection
+
+Prevents you from making mistakes!
+
+How does this translate into a good system for building branching systems
+without explicitly building branching?
+
+## Branching with monads/currying/type systems
+
+Example for an unreliable filesystem with the following traits:
+
+- Connection pool maintained behind the scenes
+
+- Bind function that lets you handle states interleaved in your code
+
+Why this? Several second order effects:
+
+- Don't have to have a callback that runs randomly (scope dependent when
+you use the DSL) - this is *BIG* in C
+
+- Can have a callback that explicitly upgrades the state of the connection,
+and type that it only goes up a certain stage (if you want?)
+
+## Branching with monads/currying/type systems
+
+---
+
+	type _ application =
+		| Fresh : [`Fresh] application
+
+		| Negotiating :
+		  [`Fresh] application ->
+		  [`Negotiating] application
+
+		| Connected :
+		  [`Fresh | `Negotiating] application ->
+		  [`Connected] application
+
+		| Rate_limited :
+		  [`Negotiating | `Connected] application ->
+		  [`Rate_limited] application
+
+## Branching with monads/currying/type systems
+
+Imagine the function signature for the `bind` function for the monad.
+
+Imagine:
+
+- `upgrade` is called on every stage aside from rate limiting, but the
+type system prevents you from returning anything other than `Connected`
+as the state - note that it fails to handle errors
+
+- `fresh` is called on every fresh connection, and can either upgrade to
+`Negotiating` and `Connected`
+
+- `connected` can only handle when connections are just made (negotiation
+is finished)
+
+- `rate_limited` can only handle when the connection is rate limited
+
+## Branching with monads/currying/type systems
+
+---
+
+	val bind_with_callbacks :
+	  _ application ->
+
+	  ?upgrade:(
+	    [`Fresh | `Negotiating] application ->
+	    [`Connected] application) ->
+
+	  ?fresh:(
+	    [`Fresh] application ->
+	    [`Negotiating | `Connected] application) ->
+
+	  ?connected:(
+	    [`Connected] application ->
+	    [`Fresh | `Connected] application) ->
+
+	  ?rate_limited:(
+	    [`Rate_limited] application ->
+	    [`Fresh | `Negotiating | `Connected] application) ->
+
+	  'a ->
+	  'b
+
+## Branching with monads/currying/type systems
+
+Now, imagine this in use (I don't wanna implement these functions,
+I'm lazy):
+
+---
+
+	let upgrade_from_fresh = ...
+
+	let execute_payload_on_connected = ...
+
+	let fix_rate_limiting = ...
+
+	let bind application =
+	  bind_with_callbacks
+	    application
+	    ~upgrade:upgrade_from_fresh
+	    ~connected:execute_payload_on_connected
+	    ~rate_limited:fix_rate_limiting
+
+	let run_with_application application =
+	  let (>>=) = bind application in
+	  get_username application >>= fun username ->
+	  get_password application >>= fun password ->
+	  Printf.printf "Username %s, password %s\n" username password
+
+This really saves us a lot of branching on the underlying state or
+a callback - though of course we construct the bind function at the
+toplevel.
+
+## Combinators
+
+.video combinators.webm video/webm 400 600
+
+## Combinators
+
+1. Evolutionary systems, path dependency
+
+2. Fault resilient systems
+
+3. Recursion without recursiveness
+
+4. Programs that follow the life of a natural number
