@@ -31,8 +31,6 @@ These things are the same!
 
 **Chaining things in an imperative language (C#?)**
 
----
-
 	http.get_something()
 		.decode_response()
 		.print_username()
@@ -46,8 +44,6 @@ can't decode the user's name?)
 This shell piping would take my song list, sort it then only get
 the unique songs:
 
----
-
 	sort $HOME/.config/music | uniq -u
 
 Literally just runs the program `sort` on my music list which produces
@@ -60,8 +56,6 @@ These things are still the same...
 
 **Composition in functional programming**
 
----
-
 	sprintf "%s user" . user_username . get_username
 
 Would very simply extract a user's username from the mysterious
@@ -72,8 +66,6 @@ This is the same as the above! Except it's **right to left** and
 typed! Except there's more to the story...
 
 **Vector math in APL languages**
-
----
 
 	{0<x+0 1@4-2 sum/2(1 0 -1 rotate'\:)/x}
 
@@ -117,8 +109,6 @@ problem at hand, you're writing a low level language...
 
 Example a - monads:
 
----
-
 	type 'a option = Some of 'a | None
 
 	let (>>=) g f = match g with
@@ -150,8 +140,6 @@ with constraints implemented by the type system!
 
 What would the previous slide be like if we were to use JS here?
 
----
-
 	const number = (() => return 123)();
 
 	if (number === null) return;
@@ -172,8 +160,6 @@ Pretty shit. Also nonsensical given the style.
 
 This DSL stuff is pretty interesting:
 
----
-
 	type ('a, 'b) exp_container =
 	  | Contained of 'a
 	  | Exception_needed of 'b
@@ -185,18 +171,12 @@ Sum type with three states!
 
 Example of how this could be used - using the race as an example:
 
----
-
 	Exception_needed `Sailor_sick
 
 (This implies jumping out and going up the stack until a handler is
 in use.)
 
----
-
 	Contained (`Won (Unix.time ()))
-
----
 
 	Nothing
 
@@ -205,8 +185,6 @@ in use.)
 ## Branching with monads/currying/type systems
 
 This could be used to create something similar to the following:
-
----
 
 	let bind v g f = match g with
 	  | Contained x -> f x
@@ -240,8 +218,6 @@ with its Result type:
 No infix but Rust encourages programming  but with macro
 programming that lets you jump out:
 
----
-
 	do_something()
 		.unwrap_or(|v| ...)
 		.unwrap();
@@ -262,8 +238,6 @@ and have them work cooperatively (interleaving execution between green
 threads).
 
 ## Branching with monads/currying/type systems
-
----
 
 	open Lwt.Infix
 
@@ -299,8 +273,6 @@ Finally, the ultimate form of using currying/monads/type systems...
 
 Natural number implemented as a GADT:
 
----
-
 	type _ number =
 	  | Zero : [`Zero] number
 	  | One : [`Zero] number -> [`One] number
@@ -310,21 +282,15 @@ Natural number implemented as a GADT:
 
 The type can only be built recursively:
 
----
-
 	Four (Three (Two (One Zero)))
 
 ## Branching with monads/currying/type systems
 
 If we were to try to build the recursive type in other ways...
 
----
-
 	Four Zero
 
 then...
-
----
 
 	Error: This expression has type [ `Zero ] number
 	       but an expression was expected of type [ `Three ] number
@@ -353,22 +319,20 @@ and type that it only goes up a certain stage (if you want?)
 
 ## Branching with monads/currying/type systems
 
----
-
 	type _ application =
-		| Fresh : [`Fresh] application
+	  | Fresh : [`Fresh] application
 
-		| Negotiating :
-		  [`Fresh] application ->
-		  [`Negotiating] application
+	  | Negotiating :
+	    [`Fresh] application ->
+	    [`Negotiating] application
 
-		| Connected :
-		  [`Fresh | `Negotiating] application ->
-		  [`Connected] application
+	  | Connected :
+	    [`Fresh | `Negotiating] application ->
+	    [`Connected] application
 
-		| Rate_limited :
-		  [`Negotiating | `Connected] application ->
-		  [`Rate_limited] application
+	  | Rate_limited :
+	    [`Negotiating | `Connected] application ->
+	    [`Rate_limited] application
 
 ## Branching with monads/currying/type systems
 
@@ -389,8 +353,6 @@ is finished)
 - `rate_limited` can only handle when the connection is rate limited
 
 ## Branching with monads/currying/type systems
-
----
 
 	val bind_with_callbacks :
 	  _ application ->
@@ -418,8 +380,6 @@ is finished)
 
 Now, imagine this in use (I don't wanna implement these functions,
 I'm lazy):
-
----
 
 	let upgrade_from_fresh = ...
 
@@ -454,6 +414,72 @@ toplevel.
 
 2. Fault resilient systems
 
-3. Recursion without recursiveness
+3. Recursion without built-in recursion
 
-4. Programs that follow the life of a natural number
+4. Programs with non-numerical arithmetic
+
+## Combinators
+
+What are combinators?
+
+Combinators are a tool to build a function over another function with
+the same arguments:
+
+	const identity = (x) => x;
+
+	const compose = (...fs) => x =>
+	  fs.reduceRight((acc, f) => f(acc), x);
+
+	const iterate_combinator = (n) => (f) =>
+	  n == 0 ? identity : compose(f, iterate_combinator(n - 1)(f));
+
+You could of course use the `iterate_combinator` to build a function that
+computes `pow` without implicitly building branching into `pow` itself -
+no interior branching (or recursion for that matter):
+
+	const pow = (x, y) =>
+	  iterate_combinator(y - 1)((v) => v * x)(x);
+
+## Combinators
+
+	const parallel_combinator = (g, ...fs) => (...args) =>
+	  g.apply(null, fs.map((f) => f.apply(null, args)));
+
+You could use it as such:
+
+	const print_collect_n_add = parallel_combinator(
+		console.log,
+		(v) => v + 1,
+		(x) => x + 2
+	);
+
+	print_collect_n_add(10);
+
+## Combinators
+
+There are some famous combinators that aren't necessarily practical:
+
+	const delta = (u) => u(u);
+
+	const U = (f) => (x) => f(delta(x));
+
+	const Y = (self) =>
+	  delta((f) =>
+	    self((x) =>
+	      (delta(f))(x)));
+
+The Y combinator (`Y`) is usable to implement recursion in a language
+lacking recursion. It can be used here to implement `factorial` this way:
+
+	const factorial_ = (self) =>
+	  (x) => x == 0 ? 1 : x * self(x-1));
+
+	const factorial = Y(factorial);
+
+Of course, your function needs to take an argument that lets you run
+the next recursive step. This CAN be used to implement code where the
+combinator is a guard with constraints. Only possible in some languages
+due to lazy evaluation.
+
+## Combinators
+
