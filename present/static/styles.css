@@ -15,7 +15,19 @@
 
     overflow: hidden;
 
-    background: black;
+    background: rgb(215, 215, 215);
+    background: -o-radial-gradient(rgb(240, 240, 240), rgb(190, 190, 190));
+    background: -moz-radial-gradient(rgb(240, 240, 240), rgb(190, 190, 190));
+    background: -webkit-radial-gradient(rgb(240, 240, 240), rgb(190, 190, 190));
+    background: -webkit-gradient(
+      radial,
+      50% 50%,
+      0,
+      50% 50%,
+      500,
+      from(rgb(240, 240, 240)),
+      to(rgb(190, 190, 190))
+    );
 
     -webkit-font-smoothing: antialiased;
   }
@@ -57,6 +69,10 @@
     -o-border-radius: 10px;
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
+
+    background-color: white;
+
+    border: 1px solid rgba(0, 0, 0, 0.3);
 
     transition: transform 0.3s ease-out;
     -o-transition: -o-transform 0.3s ease-out;
@@ -248,7 +264,7 @@
 .slides > article {
   font-family: 'Adobe Caslon Pro', Arial, sans-serif;
 
-  color: white;
+  color: black;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 
   font-size: 26px;
@@ -262,14 +278,14 @@ b {
 }
 
 a {
-  color: white;
+  color: rgb(0, 102, 204);
   text-decoration: none;
 }
 a:visited {
   color: rgba(0, 102, 204, 0.75);
 }
 a:hover {
-  color: white;
+  color: black;
 }
 
 p {
@@ -283,9 +299,8 @@ p:first-child {
 }
 
 h1 {
-  font-size: 80px;
+  font-size: 60px;
   line-height: 60px;
-  text-align: center;
 
   padding: 0;
   margin: 0;
@@ -297,11 +312,11 @@ h1 {
 
   letter-spacing: -3px;
 
-  color: white;
+  color: rgb(51, 51, 51);
 }
 
 h2 {
-  font-size: 30px;
+  font-size: 45px;
   line-height: 45px;
 
   position: absolute;
@@ -315,11 +330,11 @@ h2 {
 
   letter-spacing: -2px;
 
-  color: white;
+  color: rgb(51, 51, 51);
 }
 
 h3 {
-  font-size: 20px;
+  font-size: 30px;
   line-height: 36px;
 
   padding: 0;
@@ -330,7 +345,7 @@ h3 {
 
   letter-spacing: -1px;
 
-  color: grey;
+  color: rgb(51, 51, 51);
 }
 
 ul {
@@ -350,21 +365,19 @@ div.code {
   margin-bottom: 20px;
   overflow: hidden;
 
+  background: rgb(240, 240, 240);
   border: 1px solid rgb(224, 224, 224);
 }
 pre {
   margin: 0;
-  margin-top: 10px;
+  padding: 0;
 
-  font-family: 'Adobe Caslon Pro', 'Courier New', monospace;
+  font-family: 'Droid Sans Mono', 'Courier New', monospace;
   font-size: 18px;
-  line-height: 20px;
+  line-height: 24px;
   letter-spacing: -1px;
 
-  background-color: #232323;
-  padding: 8px;
-
-  color: white;
+  color: black;
 }
 
 pre.numbers span:before {
@@ -374,12 +387,10 @@ pre.numbers span:before {
 }
 
 code {
-  font-size: 80%;
-  font-family: 'Go Mono Regular', 'Courier New', monospace;
+  font-size: 95%;
+  font-family: 'Droid Sans Mono', 'Courier New', monospace;
 
-  line-height: 14px;
-
-  color: white;
+  color: black;
 }
 
 article > .image,
@@ -414,7 +425,7 @@ p.link {
 }
 
 .pagenumber {
-  color: white;
+  color: #8c8c8c;
   font-size: 75%;
   position: absolute;
   bottom: 0px;
@@ -454,7 +465,7 @@ div.output pre {
 }
 div.output .stdout,
 div.output pre {
-  color: white;
+  color: #e6e6e6;
 }
 div.output .stderr,
 div.output .error {

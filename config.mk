@@ -1,5 +1,5 @@
 
-PRESENT_CMD := present -base ../present-nice
+PRESENT_CMD := present -base ../present
 
 .PHONY: present
 
