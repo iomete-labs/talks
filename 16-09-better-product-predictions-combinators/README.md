@@ -1,4 +1,0 @@
-
-## Hosting the webserver
-
-	make
